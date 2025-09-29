@@ -1,0 +1,5 @@
+{ 
+"format": "best audio",
+"outtmpl": "songs/%(title)s",
+"ffmpeg_location": "C:/Users/umbra/ffmpeg-2025-09-25-git-9970dc32bf-full_build/bin"
+}
