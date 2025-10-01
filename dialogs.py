@@ -3,7 +3,7 @@ import flet_audio as fa
 import json
 import yt_dlp
 import threading
-import mutagen
+import eyed3
 from youtube_api import YouTubeDataAPI
 import os
 
@@ -11,7 +11,6 @@ def load_yt_dlp_config():
         config={}
         with open('yt_dlp_config.json', 'r', encoding='utf-8') as f:
             config= json.load(f)
-        print(config)
         return config
 yt = YouTubeDataAPI('AIzaSyC-ZQhsOfHUFz1HjxjuBunPGZ8e8dnHaWk')
 yt_options=load_yt_dlp_config()
@@ -19,14 +18,29 @@ ydl = yt_dlp.YoutubeDL(yt_options)
 
 
 def edit_song_dlg(page,songfile_name):
-    album_field=ft.TextField(label='album')
-    name_field=ft.TextField(label='name')
-    artist_field=ft.TextField(label='artist')
+    eyed3file=eyed3.load(f'songs/{songfile_name}')
+    album_field=ft.TextField(label='album',value=eyed3file.tag.album)
+    name_field=ft.TextField(label='name',value=songfile_name[:-4])
+    artist_field=ft.TextField(label='artist',value=eyed3file.tag.artist)
+
+    def edit_song(path,file,album=None,name=None,artist=None):
+        print('EDIT song func:'+path)
+        #file=eyed3.load(path)
+        file.tag.album=album
+        file.tag.artist=artist
+        file.tag.save()
+        if name!=path.split('/')[-1][:-4]:
+            print('name changed')
+            os.rename(path,f'{'/'.join(path.split('/')[:-1])}/{name}.mp3')
+
+    confirm_button=ft.TextButton(text='Confirm',on_click=lambda e: 
+                                 edit_song(path=f'songs/{songfile_name}', file=eyed3file,name=name_field.value,album=album_field.value,artist=artist_field.value))
     dlg=ft.AlertDialog(
-        title=f'Edit metadata {songfile_name}',
+        title=f'Edit metadata {songfile_name[:-4]}',
         content=ft.Column([
             name_field,artist_field,album_field
-        ])
+        ]),
+        actions=[confirm_button]
     )
     page.open(dlg)
 
@@ -92,4 +106,16 @@ def dlg_download(page):
                 )
         ]
     )
+    page.open(dlg)
+
+def dlg_delete(page,songfile_name):
+    
+    def del_song(songfile_name):
+        os.remove(f'songs/{songfile_name}'),
+        page.close(dlg)
+
+    dlg=ft.AlertDialog(title='Are you want to delete?',
+                       actions=[
+                           ft.TextButton(text='YES', on_click=lambda e: del_song(songfile_name))
+                       ])
     page.open(dlg)

@@ -1,5 +1,18 @@
 { 
 "format": "best audio",
 "outtmpl": "songs/%(title)s",
-"ffmpeg_location": "C:/Users/umbra/ffmpeg-2025-09-25-git-9970dc32bf-full_build/bin"
+"ffmpeg_location": "C:/Users/umbra/ffmpeg-2025-09-25-git-9970dc32bf-full_build/bin",
+"cookie":"L:/Desktop/cookies-youtube-com.txt",
+"ignoreerrors": "True",
+"postprocessors": [
+            {
+                "key": "FFmpegExtractAudio",
+                "preferredcodec": "mp3",
+                "preferredquality": "192"
+            },
+            {
+                "key": "FFmpegMetadata",
+                "add_metadata": "True"
+            }
+        ]
 }

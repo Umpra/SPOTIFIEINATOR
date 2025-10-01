@@ -46,14 +46,18 @@ def main(page: ft.Page):
         nonlocal lv
         nonlocal songs
         for song in songs:
+            name=song.src.split('/')[-1]
             lv.controls.append(ft.ListTile(
                                             title=ft.Text(song.src.split('/')[-1][:-4]),
                                             on_click=lambda e,t=song:play_song(t),
                                             title_alignment=ft.MainAxisAlignment.CENTER,
-                                            trailing=ft.IconButton(
-                                                            icon=ft.Icons.random(),
-                                                            on_click=lambda e,name=song.src.split('/')[-1][:-4]: edit_song_dlg(page=page,songfile_name=name)
-                                                        ),
+                                            trailing=ft.Row([ft.IconButton(
+                                                            icon=ft.Icons.EDIT,
+                                                            on_click=lambda e,name=song.src.split('/')[-1]: edit_song_dlg(page=page,songfile_name=name)
+                                                        ),ft.IconButton(
+                                                            icon=ft.Icons.DELETE,
+                                                            on_click=lambda e,name=song.src.split('/')[-1]:dlg_delete(page,songfile_name=name)
+                                                        )],alignment=ft.MainAxisAlignment.END,wrap=True),
 
                                 )   )
 
@@ -68,7 +72,7 @@ def main(page: ft.Page):
 
     def dur_slider_change_end(e):
         current_song.seek(int(e.control.value))
-        volume_slider.visible=False
+        #volume_slider.visible=False
 
     def change_vol(e):
         nonlocal current_vol
