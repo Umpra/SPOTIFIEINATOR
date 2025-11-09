@@ -4,41 +4,58 @@ import json
 import yt_dlp
 import threading
 import eyed3
+from mutagen.mp3 import MP3
+from mutagen.id3 import ID3, TIT2, TPE1, TALB, TDRC, TRCK, TCON, APIC
 from youtube_api import YouTubeDataAPI
 import os
+import shutil
+import time
 
-def load_yt_dlp_config():
-        config={}
-        with open('yt_dlp_config.json', 'r', encoding='utf-8') as f:
-            config= json.load(f)
-        return config
+
+yt_options={}
+with open('yt_dlp_config.json', 'r', encoding='utf-8') as f:
+    yt_options= json.load(f)
 yt = YouTubeDataAPI('AIzaSyC-ZQhsOfHUFz1HjxjuBunPGZ8e8dnHaWk')
-yt_options=load_yt_dlp_config()
 ydl = yt_dlp.YoutubeDL(yt_options)
 
 
-def edit_song_dlg(page,songfile_name):
-    eyed3file=eyed3.load(f'songs/{songfile_name}')
-    album_field=ft.TextField(label='album',value=eyed3file.tag.album)
-    name_field=ft.TextField(label='name',value=songfile_name[:-4])
-    artist_field=ft.TextField(label='artist',value=eyed3file.tag.artist)
+def edit_song_dlg(page:ft.Page,song:fa.Audio):
+    page.overlay.remove(song)
+    
+    name=song.src.split('/')[-1][:-4]
+    path=song.src
+    try:
+        tags=ID3(path)
+        tags.delete()
+    except: pass
+    old_album=str(tags['TALB'])
+    old_artist=str(tags['TPE1'])
 
-    def edit_song(path,file,album=None,name=None,artist=None):
-        print('EDIT song func:'+path)
-        #file=eyed3.load(path)
-        file.tag.album=album
-        file.tag.artist=artist
-        file.tag.save()
-        if name!=path.split('/')[-1][:-4]:
-            print('name changed')
-            os.rename(path,f'{'/'.join(path.split('/')[:-1])}/{name}.mp3')
+    album_field=ft.TextField(label='album',value=old_album)
+    name_field=ft.TextField(label='name',value=name)
+    artist_field=ft.TextField(label='artist',value=old_artist)
+    
+    
+   
+    def edit_song(e):
+        new_name=name_field.value
+        
+        if artist_field.value: tags.add(TPE1(encoding=3, text=artist_field.value))
+        if album_field.value: tags.add(TALB(encoding=3, text=album_field.value))
+        tags.save(path)
+        if new_name!= name: os.rename(path, f'songs/{new_name}.mp3')
+        
+        page.overlay.append(song)
+        page.update()
+        page.close(dlg)
+        
 
-    confirm_button=ft.TextButton(text='Confirm',on_click=lambda e: 
-                                 edit_song(path=f'songs/{songfile_name}', file=eyed3file,name=name_field.value,album=album_field.value,artist=artist_field.value))
+    confirm_button=ft.TextButton(text='Confirm',on_click=edit_song)
     dlg=ft.AlertDialog(
-        title=f'Edit metadata {songfile_name[:-4]}',
+        modal=True,
+        title=f'Edit metadata {name}',
         content=ft.Column([
-            name_field,artist_field,album_field
+            name_field,artist_field,album_field,
         ]),
         actions=[confirm_button]
     )

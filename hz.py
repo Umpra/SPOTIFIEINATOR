@@ -35,12 +35,14 @@ def main(page: ft.Page):
         if e.data=='completed' and e.control in page.overlay: next_song(songs)
   
     songs=[fa.Audio(src=f'l:/pr/mp3/songs/{song}',autoplay=False,volume=current_vol/100,on_state_changed=state_change,data=i) for i,song in enumerate(os.listdir('songs'))]
+    
     for song in songs:page.overlay.append(song)
     lv=ft.ListView(width=400,height=400,expand=True)
     
     
     #page.vertical_alignment=ft.MainAxisAlignment.CENTER
     #FUNC \/    
+
 
     def update_playlist():
         nonlocal lv
@@ -53,7 +55,7 @@ def main(page: ft.Page):
                                             title_alignment=ft.MainAxisAlignment.CENTER,
                                             trailing=ft.Row([ft.IconButton(
                                                             icon=ft.Icons.EDIT,
-                                                            on_click=lambda e,name=song.src.split('/')[-1]: edit_song_dlg(page=page,songfile_name=name)
+                                                            on_click=lambda e,file=song: edit_song_dlg(page,song=file)
                                                         ),ft.IconButton(
                                                             icon=ft.Icons.DELETE,
                                                             on_click=lambda e,name=song.src.split('/')[-1]:dlg_delete(page,songfile_name=name)
@@ -201,4 +203,4 @@ def main(page: ft.Page):
                     ],expand=True
                 )
     )
-ft.app(main,view=ft.AppView.FLET_APP_WEB)
+ft.app(main,view=ft.AppView.FLET_APP)
